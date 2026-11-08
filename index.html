@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة اختبار السرعة والذكاء 🎮</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background-color: #0d1117;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* واجهة اللعبة الوهمية */
+        #game-ui {
+            background: #161b22;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+            max-width: 90%;
+            width: 360px;
+            text-align: center;
+            z-index: 10;
+            transition: 0.3s;
+        }
+        .game-title {
+            color: #58a6ff;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .start-btn {
+            background: linear-gradient(45deg, #238636, #2ea043);
+            color: #fff;
+            border: none;
+            padding: 14px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(46, 160, 67, 0.4);
+            transition: 0.2s;
+        }
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* واجهة الهكر المرعبة (تظهر ملء الشاشة) */
+        #hacker-ui {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 99999;
+            text-align: right;
+            box-sizing: border-box;
+        }
+
+        /* شريط أعلى شاشة الهكر يحتوي على زر اللعبة بعد الإصابة */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ff0000;
+            padding-bottom: 8px;
+            background: rgba(255, 0, 0, 0.1);
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .infected-btn {
+            background: #ff0000;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 20px;
+            animation: pulse 0.8s infinite alternate;
+        }
+        @keyframes pulse {
+            from { transform: scale(1); box-shadow: 0 0 5px #ff0000; }
+            to { transform: scale(1.05); box-shadow: 0 0 15px #ff0000; }
+        }
+
+        .glitch-header {
+            font-size: 14px;
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        .console {
+            flex-grow: 1;
+            overflow: hidden;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            color: #00ff66;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            color: #fff;
+            background: #8b0000;
+            padding: 8px;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        /* اهتزاز الشاشة */
+        .shake {
+            animation: shake 0.15s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, -2px); }
+            100% { transform: translate(1px, -1px); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الواجهة الأولى: اللعبة الوهمية -->
+    <div id="game-ui">
+        <div class="game-title">🎯 لعبة سرعة الاستجابة</div>
+        <p style="color: #8b949e; font-size: 14px;">اختبر سرعة بديهتك ودقة مهاراتك الآن!</p>
+        <button class="start-btn" id="main-btn" onclick="triggerInfiniteHack()">ابدأ اللعب 🚀</button>
+    </div>
+
+    <!-- الواجهة الثانية: الاختراق واستهداف المعالج المستمر -->
+    <div id="hacker-ui">
+        <div class="top-bar">
+            <button class="infected-btn">🎮 لعبة السرعة (قيد التشغيل...)</button>
+            <div class="glitch-header">⚠️ CPU CORE MELTDOWN ⚠️</div>
+        </div>
+
+        <div class="console" id="console"></div>
+
+        <div class="footer" id="status">جاري مسح النظام وتدمير قطاعات الذاكرة... [0%]</div>
+    </div>
+
+    <script>
+        let isHacking = false;
+        let progress = 0;
+        const consoleDiv = document.getElementById('console');
+        const statusDiv = document.getElementById('status');
+
+        function triggerInfiniteHack() {
+            // 1. تفعيل ملء الشاشة إجبارياً
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+
+            // 2. إخفاء واجهة البدء وإظهار شاشة اختراق المعالج
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('hacker-ui').style.display = 'flex';
+            document.body.classList.add('shake');
+
+            isHacking = true;
+            generateInfiniteLogs();
+        }
+
+        // مولد الأكواد والرسائل اللا نهائية
+        const actions = [
+            "DELETING SYSTEM32 PROTOCOLS...",
+            "OVERCLOCKING CPU CORE ",
+            "PURGING DATA AT SECTOR 0x00F",
+            "UPLOADING PRIVATE GALLERY TO TOR NODE...",
+            "FORCE INJECTING HARDWARE TROJAN...",
+            "CORRUPTING ANDROID KERNEL BOOTLOADER...",
+            "ERASING WHATSAPP BACKUP DATABASE...",
+            "CPU TEMPERATURE WARNING: 99°C!",
+            "RAM VOLTAGE SPIKE DETECTED (5.2V)...",
+            "ENCRYPTING ALL SYSTEM FILES WITH AES-56..."
+        ];
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateInfiniteLogs() {
+            if (!isHacking) return;
+
+            // توليد أسطر أكواد عشوائية مستمرة بلا نهاية
+            let randomAction = actions[getRandomInt(0, actions.length - 1)];
+            let hex = Math.random().toString(16).substring(2, 10).toUpperCase();
+            let core = getRandomInt(0, 7);
+            
+            let logLine = `> [ERR-0x${hex}] Core_${core}: ${randomAction} (FAILED: HARDWARE OVERFLOW)\n`;
+            consoleDiv.innerHTML += logLine;
+
+            // جعل الأكواد تلتف وتتحرك للأسفل دائماً
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+
+            // تحديث النسبة الوهمية ببطء لتستمر لفترة طويلة جداً
+            if (progress < 99) {
+                progress += 0.1;
+                statusDiv.innerText = `جاري مسح النظام وتدمير قطاعات الذاكرة... [${progress.toFixed(1)}%]`;
+            } else {
+                statusDiv.innerText = "CRITICAL FAILURE: SYSTEM KERNEL PERMANENTLY DESTROYED!";
+            }
+
+            // تكرار الكتابة بسرعة عالية جداً دون توقف
+            setTimeout(generateInfiniteLogs, getRandomInt(100, 300));
+        }
+    </script>
+</body>
+</html>
